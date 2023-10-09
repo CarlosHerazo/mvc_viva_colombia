@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./view.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Documento</title>
+</head>
+
+<body>
+    <div class="container mt-5 mb-5">
+        <div class="card">
+            <div class="card-header d-flex p-2">
+                <div class="input-group">
+                    <span class="input-group-text">Viva Colombia</span>
+                </div>
+                <div class="imagen">
+                    <img src="vivaColombia.png" alt="vivaColombia" class="img-fluid">
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <h4 class="text-center">Información del Pasajero</h4>
+                    <div class="row m-3">
+                        <div class="col-5">
+                            <h5 class="fw-bold">Nombre:</h5> <span id="nombre">
+                                
+                            </span>
+                        </div>
+                        <div class="col-md">
+                            <h5 class="fw-bold">Apellido:</h5> <span id="apellido">
+                                
+                            </span>
+                        </div>
+                        <div class="col-md">
+                            <h4 class="fw-bold">Cédula:</h4><span id="cedula"></span>
+                        </div>
+                    </div>
+
+                    <div class="row text-end">
+                        <h6 class="fw-bold">Fecha:</h6>
+                        <p id="fecha_hoy"></p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <h4>Informacion de vuelo</h4>
+                    <div class="row grid gap-0 column-gap-3">
+                        <div class="col-md">
+                            <h4>Asiento:</h4>
+                            <div>
+                                <p>Puesto:&nbsp;<span id="puesto"></span></p>
+                            </div>
+                            <div>
+                                <p>Clase:&nbsp;<span id="clase"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="col-md  border-start border-end">
+                            <h4>Salida:&nbsp;</h4>
+                            <div>
+                                <p>Lugar:&nbsp;<span id="salida_lugar"></span></p>
+                            </div>
+
+                            <div>
+                                <p>Fecha:&nbsp;<span id="fecha_salida"></span></p>
+                            </div>
+
+                            <div>
+                                <p>Hora:&nbsp;<span id="hora_salida"></span></p>
+                            </div>
+
+
+                        </div>
+                        <div class="col-md">
+                            <h4>Llegada:&nbsp;</h4>
+                            <div>
+                                <p>Destino:&nbsp;<span id="llegada_destino"></span></p>
+                            </div>
+
+                            <div>
+                                <p>Fecha:&nbsp;<span id="fecha_destino"></span></p>
+                            </div>
+                            <div>
+                                <p>Hora Estimada:&nbsp;<span id="hora_destino"></span></p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row-12">
+                    <p class="text-center fst-italic">Gracias por elegir nuestra aerolínea. ¡Buen viaje!</p>
+                </div>
+
+            </div>
+        </div>
+        <button class="btn btn-success w-10 mt-2" onclick="imprimir()">Imprimir check</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script>
+        function imprimir() {
+            window.print()
+        }
+        (async() => {
+
+            const valores = window.location.search;
+            const urlParams = new URLSearchParams(valores);
+
+            //Accedemos a los valores
+            var cedula = urlParams.get('cedula');
+            console.log(cedula)
+
+
+            let vuelo = await (async() => JSON.parse(await (await fetch(`http://localhost:3000/consultarVueloByCedula?cedula=${cedula}`)).text()))()
+
+            if (vuelo.length == 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Este dato no existe en nuestra base de datos.',
+                })
+            } else {
+                Swal.fire({
+                    position: 'botton',
+                    icon: 'success',
+                    title: 'Consulta exitosa',
+                    showConfirmButton: false,
+                    timer: 1000
+                })
+            }
+            const fecha = new Date(vuelo[0].Fecha_Consulta);
+            const fechaSalida = new Date(vuelo[0].Fecha_Salida);
+            const fechaDestino = new Date(vuelo[0].Fecha_Llegada);
+            const opcionesDeFormato = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            const fechaFormateada = fecha.toLocaleDateString('es-ES', opcionesDeFormato);
+            const fechaFormateadaSalida = fechaSalida.toLocaleDateString('es-ES', opcionesDeFormato);
+            const fechaFormateadaLlegada = fechaDestino.toLocaleDateString('es-ES', opcionesDeFormato);
+
+
+            document.querySelector("#cedula").innerHTML = vuelo[0].Cedula;
+            document.querySelector("#nombre").innerHTML = vuelo[0].Nombre;
+            document.querySelector("#apellido").innerHTML = vuelo[0].Apellido;
+            document.querySelector("#fecha_hoy").innerHTML = fechaFormateada;
+            document.querySelector("#puesto").innerHTML = vuelo[0].Puesto;
+            document.querySelector("#clase").innerHTML = vuelo[0].Clase;
+            document.querySelector("#salida_lugar").innerHTML = vuelo[0].Salida;
+            document.querySelector("#fecha_salida").innerHTML = fechaFormateadaSalida;
+            document.querySelector("#hora_salida").innerHTML = vuelo[0].Hora_Salida;
+            document.querySelector("#llegada_destino").innerHTML = vuelo[0].Destino;
+            document.querySelector("#fecha_destino").innerHTML = fechaFormateadaLlegada;
+            document.querySelector("#hora_destino").innerHTML = vuelo[0].Hora_Llegada;
+            console.log(vuelo)
+
+        })();
+    </script>
+</body>
+
+</html>
